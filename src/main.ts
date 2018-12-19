@@ -32,6 +32,10 @@ const handlers: {[key: string]: () => void} = {
     // ちゃんと辞書に登録されていたら意味を伝える
     if (statusCode !== undefined && statusCodeMap[statusCode] !== undefined) {
       message = `${statusCode}ですね。${statusCodeMap[statusCode]} 他にありますか？`
+      // tslint:disable-next-line:no-invalid-this
+      this.emit(':askWithCard', message, '他にありますか？', statusCode, statusCodeMap[statusCode])
+
+      return
     }
 
     // tslint:disable-next-line:no-invalid-this
