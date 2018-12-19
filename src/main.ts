@@ -1,5 +1,6 @@
 import { Context, handler, Request, RequestBody } from 'alexa-sdk'
 
+import { messageMap } from './message'
 import { statusCodeMap } from './statusCodes'
 
 const APP_ID: string = undefined
@@ -20,26 +21,31 @@ const handlers: {[key: string]: () => void} = {
   },
   'StatusIntent'(): void {
     let statusCode
-    // うまく取得できなかった場合はとりあえず謝る
-    let message = 'すいません、わかりませんでした。もう一度お願いします。'
     try {
+      // tslint:disable-next-line:no-invalid-this
+      console.log(`発話内容: ${this.event.request.intent.slots.statusCode.value}`)
       // tslint:disable-next-line:no-invalid-this
       statusCode = this.event.request.intent.slots.statusCode.resolutions.resolutionsPerAuthority[0].values[0].value.name
     } catch (e) {
-      console.log(e)
-    }
-
-    // ちゃんと辞書に登録されていたら意味を伝える
-    if (statusCode !== undefined && statusCodeMap[statusCode] !== undefined) {
-      message = `${statusCode}ですね。${statusCodeMap[statusCode]} 他にありますか？`
       // tslint:disable-next-line:no-invalid-this
-      this.emit(':askWithCard', message, '他にありますか？', statusCode, statusCodeMap[statusCode])
+      this.emit(':ask', messageMap.onceAgein)
+      console.log('エラーが発生しました')
+      console.log(e)
 
       return
     }
 
+    if (statusCode === undefined || statusCodeMap[statusCode] === undefined) {
+      // tslint:disable-next-line:no-invalid-this
+      this.emit(':ask', messageMap.onceAgein)
+      console.log(`不明なステータスコードです: ${statusCode}}`)
+
+      return
+    }
+
+    const message = `${statusCode}ですね。${statusCodeMap[statusCode]} ${messageMap.askMore}`
     // tslint:disable-next-line:no-invalid-this
-    this.emit(':ask', message)
+    this.emit(':askWithCard', message, messageMap.askMore, statusCode, statusCodeMap[statusCode])
   },
   'AMAZON.HelpIntent'(): void {
     // tslint:disable-next-line:no-invalid-this
